@@ -123,7 +123,7 @@
     - eu-north-1
     - ap-southeast-1
     SingleAvailabilityZone: False
-    TargetCapacity: 2500
+    TargetCapacity: 250
     TargetCapacityUnitType: vcpu
   - ConfigurationName: ABIS-1to8GB-Above16vCPUs
     InstanceRequirementsWithMetadata:
@@ -180,7 +180,7 @@
     - eu-north-1
     - ap-southeast-1
     SingleAvailabilityZone: False
-    TargetCapacity: 1250
+    TargetCapacity: 125
     TargetCapacityUnitType: vcpu
   - ConfigurationName: R 4xl and Above
     InstanceTypes:
@@ -244,7 +244,7 @@
     - eu-north-1
     - ap-southeast-1
     SingleAvailabilityZone: False
-    TargetCapacity: 1250
+    TargetCapacity: 125
     TargetCapacityUnitType: vcpu
   - ConfigurationName: ABIS-1to8GB-Above16vCPUs
     InstanceRequirementsWithMetadata:
