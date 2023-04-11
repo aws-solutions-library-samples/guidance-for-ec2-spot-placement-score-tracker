@@ -1,4 +1,4 @@
-# Spot Placement Score Tracker
+# EC2 Spot Placement Score Tracker
 Author: Carlos Manzanedo Rueda <ruecarlo@amazon.com>
 
 ## Introduction 
