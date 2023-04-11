@@ -128,7 +128,7 @@ upgrade your python and npm.
 
  2.- Execute the following commands on Cloud 9 (you can just copy and paste)
 ```
-export VERSION=1.0.2
+export VERSION=1.0.3
 wget https://github.com/aws-samples/ec2-spot-placement-score-tracker/archive/refs/tags/v$VERSION.tar.gz -O ec2-spot-placement-score-tracker-v$VERSION.tar.gz
 tar xzvf ec2-spot-placement-score-tracker-v$VERSION.tar.gz
 cd $HOME/environment/ec2-spot-placement-score-tracker-$VERSION
