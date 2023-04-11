@@ -125,17 +125,13 @@ this instructions.
  1.- Create a Cloud9 environment in your account. **Note**: If you use a pre-existing cloud9 environment you may need to
 upgrade your python and npm.
 
- 2.- Download by clicking to this link [**EC2 Spot Placement Score Dashboard Tracker- 1.0.1 version from Github**](https://github.com/aws-samples/ec2-spot-placement-score-tracker/archive/refs/tags/v1.0.1.tar.gz)
-to your desktop:
 
- 3.- Upload the file [**ec2-spot-placement-score-tracker-1.0.1.tar.gz**](https://github.com/aws-samples/ec2-spot-placement-score-tracker/archive/refs/tags/v1.0.1.tar.gz)
-file to your Cloud9 environment. To upload you can just drag and drop the file, into the green folder at the top.
-
-#### Uncompress the application 
-Execute the following commands on Cloud 9 (you can just copy and paste)
+ 2.- Execute the following commands on Cloud 9 (you can just copy and paste)
 ```
-tar xzvf ec2-spot-placement-score-tracker-1.0.1.tar.gz
-cd $HOME/environment/ec2-spot-placement-score-tracker-1.0.1
+export VERSION=1.0.2
+wget https://github.com/aws-samples/ec2-spot-placement-score-tracker/archive/refs/tags/v{$VERSION}.tar.gz -O ec2-spot-placement-score-tracker-v{$VERSION}.tar.gz
+tar xzvf ec2-spot-placement-score-tracker-v{$VERSION}.tar.gz
+cd $HOME/environment/ec2-spot-placement-score-tracker-v{$VERSION}
 ```
 
 #### Configuring the Cloud9 Setup before deployment
