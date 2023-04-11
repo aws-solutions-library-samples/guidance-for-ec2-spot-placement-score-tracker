@@ -1,0 +1,277 @@
+### Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+### SPDX-License-Identifier: MIT-0
+###
+### Permission is hereby granted, free of charge, to any person obtaining a copy of this
+### software and associated documentation files (the "Software"), to deal in the Software
+### without restriction, including without limitation the rights to use, copy, modify,
+### merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+### permit persons to whom the Software is furnished to do so.
+###
+### THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+### INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+### PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+### HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+### OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+### SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+#
+### This example showcases how to create actionable insights for Spot configurations
+### The final goal is find configurations for your workload that and increase
+### diversification and as a result increase the Spot Placement Score.
+### This dashboard will be created with 4 columns and 2 rows.
+### The rows at the top will show what the SPS score is for a
+### Request of 250 vCPU's and the second row for a 125 vCPUs
+### The numbers have been kept deliberately low so this work in most accounts
+### as an example. You are encouraged to modify this to your needs.
+###
+### The first column `R 8xl and Above` is the
+### base configuration that represents the current configuration used by the application
+### The rest of the columns contain proposed changes in the configuration to increase the diversification
+### either by adding instance types from different sizes or by
+### adding different families. Once that you tried this configuration,
+### as an exercise: Increase diversification with new families.
+- Dashboard: R-historic-SPS-example
+  DefaultWidgetHeight: 12    # Default : 6
+  DefaultWidgetWidth: 6     # Default : 6, Max:24
+  Sps:
+  #####################################################
+  ## R Configurations for 2.5K vCPUs in existing regions
+  #####################################################
+  - ConfigurationName: R 8xl and Above
+    InstanceTypes:
+    - r3.8xlarge
+    - r4.8xlarge
+    - r5.8xlarge
+    - r5.8xlarge
+    - r5d.8xlarge
+    - r5dn.8xlarge
+    - r5n.8xlarge
+    - r6i.8xlarge
+    - r5.12xlarge
+    - r5n.12xlarge
+    - r6i.12xlarge
+    - r4.16xlarge
+    - r5a.16xlarge
+    - r5d.16xlarge
+    - r5ad.16xlarge
+    RegionNames:
+    - us-east-1
+    - eu-west-1
+    - eu-north-1
+    - ap-southeast-1
+    SingleAvailabilityZone: False
+    TargetCapacity: 250
+    TargetCapacityUnitType: vcpu
+  - ConfigurationName: R 4xl and Above
+    InstanceTypes:
+    - r3.8xlarge
+    - r4.8xlarge
+    - r5.8xlarge
+    - r5.8xlarge
+    - r5d.8xlarge
+    - r5dn.8xlarge
+    - r5n.8xlarge
+    - r6i.8xlarge
+    - r5.12xlarge
+    - r5n.12xlarge
+    - r6i.12xlarge
+    - r4.16xlarge
+    - r5a.16xlarge
+    - r5d.16xlarge
+    - r5ad.16xlarge
+    - r5.4xlarge
+    - r5a.4xlarge
+    - r5ad.4xlarge
+    - r5b.4xlarge
+    - r5d.4xlarge
+    - r5dn.4xlarge
+    - r5n.4xlarge
+    - r6a.4xlarge
+    - r6i.4xlarge
+    - r6id.4xlarge
+    RegionNames:
+    - us-east-1
+    - eu-west-1
+    - eu-north-1
+    - ap-southeast-1
+    SingleAvailabilityZone: False
+    TargetCapacity: 250
+    TargetCapacityUnitType: vcpu
+  - ConfigurationName: ABIS-1to8GB-Above32vCPUs
+    InstanceRequirementsWithMetadata:
+      ArchitectureTypes:
+      - x86_64
+      InstanceRequirements:
+        VCpuCount:
+          Min: 32
+        MemoryMiB:
+          Min: 256
+        AcceleratorCount:
+          Max: 0
+        BareMetal: excluded
+        BurstablePerformance: excluded
+        CpuManufacturers:
+        - intel
+        - amd
+        InstanceGenerations:
+        - current
+        MemoryGiBPerVCpu:
+          Min: 8
+        SpotMaxPricePercentageOverLowestPrice: 50
+    RegionNames:
+    - us-east-1
+    - eu-west-1
+    - eu-north-1
+    - ap-southeast-1
+    SingleAvailabilityZone: False
+    TargetCapacity: 2500
+    TargetCapacityUnitType: vcpu
+  - ConfigurationName: ABIS-1to8GB-Above16vCPUs
+    InstanceRequirementsWithMetadata:
+      ArchitectureTypes:
+      - x86_64
+      InstanceRequirements:
+        VCpuCount:
+          Min: 16
+        MemoryMiB:
+          Min: 128
+        AcceleratorCount:
+          Max: 0
+        BareMetal: excluded
+        BurstablePerformance: excluded
+        CpuManufacturers:
+        - intel
+        - amd
+        InstanceGenerations:
+        - current
+        MemoryGiBPerVCpu:
+          Min: 8
+        SpotMaxPricePercentageOverLowestPrice: 50
+    RegionNames:
+    - us-east-1
+    - eu-west-1
+    - eu-north-1
+    - ap-southeast-1
+    SingleAvailabilityZone: False
+    TargetCapacity: 250
+    TargetCapacityUnitType: vcpu
+  #####################################################
+  # R configurations for 1.5K vCPUs in existing regions
+  #####################################################
+  - ConfigurationName: R 8xl and Above
+    InstanceTypes:
+    - r3.8xlarge
+    - r4.8xlarge
+    - r5.8xlarge
+    - r5.8xlarge
+    - r5d.8xlarge
+    - r5dn.8xlarge
+    - r5n.8xlarge
+    - r6i.8xlarge
+    - r5.12xlarge
+    - r5n.12xlarge
+    - r6i.12xlarge
+    - r4.16xlarge
+    - r5a.16xlarge
+    - r5d.16xlarge
+    - r5ad.16xlarge
+    RegionNames:
+    - us-east-1
+    - eu-west-1
+    - eu-north-1
+    - ap-southeast-1
+    SingleAvailabilityZone: False
+    TargetCapacity: 1250
+    TargetCapacityUnitType: vcpu
+  - ConfigurationName: R 4xl and Above
+    InstanceTypes:
+    - r3.8xlarge
+    - r4.8xlarge
+    - r5.8xlarge
+    - r5.8xlarge
+    - r5d.8xlarge
+    - r5dn.8xlarge
+    - r5n.8xlarge
+    - r6i.8xlarge
+    - r5.12xlarge
+    - r5n.12xlarge
+    - r6i.12xlarge
+    - r4.16xlarge
+    - r5a.16xlarge
+    - r5d.16xlarge
+    - r5ad.16xlarge
+    - r5.4xlarge
+    - r5a.4xlarge
+    - r5ad.4xlarge
+    - r5b.4xlarge
+    - r5d.4xlarge
+    - r5dn.4xlarge
+    - r5n.4xlarge
+    - r6a.4xlarge
+    - r6i.4xlarge
+    - r6id.4xlarge
+    RegionNames:
+    - us-east-1
+    - eu-west-1
+    - eu-north-1
+    - ap-southeast-1
+    SingleAvailabilityZone: False
+    TargetCapacity: 125
+    TargetCapacityUnitType: vcpu
+  - ConfigurationName: ABIS-1to8GB-Above32vCPUs
+    InstanceRequirementsWithMetadata:
+      ArchitectureTypes:
+      - x86_64
+      InstanceRequirements:
+        VCpuCount:
+          Min: 32
+        MemoryMiB:
+          Min: 256
+        AcceleratorCount:
+          Max: 0
+        BareMetal: excluded
+        BurstablePerformance: excluded
+        CpuManufacturers:
+        - intel
+        - amd
+        InstanceGenerations:
+        - current
+        MemoryGiBPerVCpu:
+          Min: 8
+        SpotMaxPricePercentageOverLowestPrice: 50
+    RegionNames:
+    - us-east-1
+    - eu-west-1
+    - eu-north-1
+    - ap-southeast-1
+    SingleAvailabilityZone: False
+    TargetCapacity: 1250
+    TargetCapacityUnitType: vcpu
+  - ConfigurationName: ABIS-1to8GB-Above16vCPUs
+    InstanceRequirementsWithMetadata:
+      ArchitectureTypes:
+      - x86_64
+      InstanceRequirements:
+        VCpuCount:
+          Min: 16
+        MemoryMiB:
+          Min: 128
+        AcceleratorCount:
+          Max: 0
+        BareMetal: excluded
+        BurstablePerformance: excluded
+        CpuManufacturers:
+        - intel
+        - amd
+        InstanceGenerations:
+        - current
+        MemoryGiBPerVCpu:
+          Min: 8
+        SpotMaxPricePercentageOverLowestPrice: 50
+    RegionNames:
+    - us-east-1
+    - eu-west-1
+    - eu-north-1
+    - ap-southeast-1
+    SingleAvailabilityZone: False
+    TargetCapacity: 125
+    TargetCapacityUnitType: vcpu

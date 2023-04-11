@@ -1,0 +1,1 @@
+from .spot_placement_score_lambda import *
