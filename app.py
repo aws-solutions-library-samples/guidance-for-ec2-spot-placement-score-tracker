@@ -315,7 +315,8 @@ if app.node.try_get_context("cdk-nag"):
 
 spot_placement_score_dashboard_stack = SpotPlacementScoreDashboardStack(
     app,
-    "spot-placement-score-dashboard"
-    , stack_name=app.node.try_get_context("stack-name")
+    "spot-placement-score-dashboard",
+    stack_name=app.node.try_get_context("stack-name"),
+    description="Guidance for EC2 Spot Placement Score AWS (SO9399)"
 )
 app.synth()
