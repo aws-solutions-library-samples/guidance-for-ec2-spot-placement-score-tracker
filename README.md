@@ -41,7 +41,7 @@ of Spare capacity at scale. Some of the best practices you should consider are:
 if your workload allows, exploring the possibility of using multiple region
 * Considering running at times of the day when spare capacity is more available 
 
-The following graph shows one of the Spot Placement Score dashboards
+The following figure shows one of the Spot Placement Score dashboards
 
 ![img](/docs/spot-placement-score.png)
 
@@ -53,15 +53,15 @@ to deploy the infrastructure, IAM roles and policies required to run Lambda that
 every 5 minutes to collect the Spot Placement Scores of as many diversified configurations
 as needed.
 
-![img](/docs/SpotPlacementScore.drawio.png)
+![img](/docs/building-a-spot-placement-score-tracker-dashboard-on-aws.png)
 
-The image above shows components deployed using CDK. If you are not familiar with CDK you can use the 
-[cloud 9 to proceed with the whole setup and installation here](#steps-to-consider-before-deployment-sps-dashboard-configuration).
+The image above shows architectural components deployed using AWS CDK. If you are not familiar with CDK you can use the 
+[AWS Cloud 9 IDE to proceed with the whole setup and installation](#steps-to-consider-before-deployment-sps-dashboard-configuration).
 
 The CDK project sets up a few policies and roles to run with least privilege read access to all resources except
 for Cloudwach for which it needs to store metrics.
 
-The diagram shows how the different steps are called:
+The diagram shows how the workflow steps are invoked:
 
 * First, Event Bridge cron functionality starts the execution of the `spotPlacementScoresLambda` every 5 minutes.
 * The lambda function, uses the environment variable config to fetch the YAML document that contains the dashboard.
@@ -112,10 +112,9 @@ and understand how to get actionable insights based on your configuration that w
 * IAM Permissions run CDK stacks and request for Spot Placement Score
 * Docker
 
-
 ## Installation
 
-### Deploying CDK project using Cloud9   
+### Deploying CDK project using Cloud9 IDE 
 The easier way to setup and deploy your environment is using Cloud9 following 
 this instructions. 
 
@@ -255,7 +254,7 @@ one for `Compute 2Xlarge`.
 Instead  of using `InstanceTypes` we do recommend using `InstanceRequirementsWithMetadata`. This
 maps with requesting Diversification using Instance attributes rather than the AWS instance names.
 You can read more about [Attribute Based Instance Selection](https://aws.amazon.com/blogs/aws/new-attribute-based-instance-type-selection-for-ec2-auto-scaling-and-ec2-fleet/)
-We do **strongly recommend to define your configurations using Attribute Based Instance Selection**.
+We  **strongly recommend** to define your configurations using Attribute Based Instance Selection.
 By doing that you will have a simple configuration to maximise the diversification and instance types
 that your workload can use and that will consider new instances as they are released by AWS. 
 
@@ -319,10 +318,9 @@ cdk deploy --context "sps-config=./my_sps_dashboard_configuration.yaml" --contex
 This will create a new Stack named `my-sps-demo`. To destroy/remove the stack you can use CloudFormation
 directly.
 
-
 ## Dashboard Setup Best Practices 
 
-Checking what is the Spot Placement Score is definitely useful. You can use this project and 
+Checking out what is the Spot Placement Score is definitely useful. You can use this project and 
 [Spot Interruption Dashboard](https://github.com/aws-samples/ec2-spot-interruption-dashboard)
 to get understand and get the right observability for your workloads, but that's just the begining.
 
