@@ -1,5 +1,5 @@
 # EC2 Spot Placement Score Tracker
-Author: Carlos Manzanedo Rueda <ruecarlo@amazon.com>
+
 
 ## Introduction 
 Amazon EC2 Spot Instances let you take advantage of unused EC2 capacity in the AWS cloud. 
@@ -48,26 +48,27 @@ The following figure shows one of the Spot Placement Score dashboards
 
 ## Architecture Diagram
 
-The project provides Infrastructure as Code (IaaC) automation using [CDK](https://docs.aws.amazon.com/cdk/latest/guide/home.html)
+The project provides Infrastructure as Code (IaaC) automation using [AWS CDK](https://docs.aws.amazon.com/cdk/latest/guide/home.html)
 to deploy the infrastructure, IAM roles and policies required to run Lambda that gets executed
 every 5 minutes to collect the Spot Placement Scores of as many diversified configurations
 as needed.
 
 ![img](/docs/building-a-spot-placement-score-tracker-dashboard-on-aws.png)
+_Figure 1. EC2 Spot Instance Score Tracker Reference Architecture_
 
-The image above shows architectural components deployed using AWS CDK. If you are not familiar with CDK you can use the 
-[AWS Cloud 9 IDE to proceed with the whole setup and installation](#steps-to-consider-before-deployment-sps-dashboard-configuration).
+The Reference Architecture above shows architectural components deployed using AWS CDK. If you are not familiar with AWS CDK you can use the 
+[AWS Cloud 9 IDE](#steps-to-consider-before-deployment-sps-dashboard-configuration)  to proceed with the whole setup and installation, otherwise you can install AWS CDK and run deployment from your computer.
 
 The CDK project sets up a few policies and roles to run with least privilege read access to all resources except
 for Cloudwach for which it needs to store metrics.
 
 The diagram shows how the workflow steps are invoked:
 
-* First, Event Bridge cron functionality starts the execution of the `spotPlacementScoresLambda` every 5 minutes.
+* First, Event Bridge CRON job functionality starts the execution of the `spotPlacementScoresLambda` every 5 minutes.
 * The lambda function, uses the environment variable config to fetch the YAML document that contains the dashboard.
 * The lambda decomposes all the requests and starts requesting one by one the queries to SPS
 * The responses are then used to create and store CloudWatch Metrics into Cloudwatch.
-* The CDK project did also read the YAML document before storing it into S3 and did use the project to
+* The CDK project also reads the YAML document before storing it into S3 and did use the project to
 preset the CloudWatch representation of the dashboards.
 
 ## Important notes Spot Placement Score Limits imposed by AWS
@@ -362,3 +363,7 @@ all the configurations, and then change just one dimension. The idea is that we 
 identify configurations. For example we could chose the `TargetCapacity` dimension, copying all the previous configuration
 and then checking what would happen if our workload doubles in size, or if we could perhaps reduce in two and run
 two copies in different regions.
+
+##Authors: 
+Carlos Manzanedo Rueda <ruecarlo@amazon.com>
+Daniel Zilberman <dzilberm@amazon.com>
