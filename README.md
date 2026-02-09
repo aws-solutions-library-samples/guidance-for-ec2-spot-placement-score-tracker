@@ -1,4 +1,5 @@
-# Guidance on Spot Placement Score Tracker Dashboard on AWS
+
+# Guidance for EC2 Spot Placement Score Tracker Dashboard on AWS
 
 
 ## Introduction 
@@ -97,6 +98,12 @@ The following table provides a sample cost breakdown for deploying this Guidance
 | Amazon CloudWatch Metrics PutMetricData | ˜276k PutMetricData API Calls  | $ 2.76 |
 | Amazon S3 | Stores configuration YAML files | $ 0.01 |
 | **Total** | | **$ 25.37/mo**|
+* First, Event Bridge CRON job functionality starts the execution of the `spotPlacementScoresLambda` every 5 minutes.
+* The lambda function, uses the environment variable config to fetch the YAML document that contains the dashboard.
+* The lambda decomposes all the requests and starts requesting one by one the queries to SPS
+* The responses are then used to create and store CloudWatch Metrics into Cloudwatch.
+* The CDK project also reads the YAML document before storing it into S3 and did use the project to
+preset the CloudWatch representation of the dashboards.
 
 ## Important notes Spot Placement Score Limits imposed by AWS
 
@@ -168,7 +175,7 @@ and understand how to get actionable insights based on your configuration that w
 
 ## Deployment
 
-1. First download and extract the project to your local environment:
+1. First download and extract the guidance repository to your local environment:
  
 ```bash
 export VERSION=1.0.4
@@ -178,7 +185,7 @@ cd $HOME/environment/guidance-for-ec2-spot-placement-score-tracker-$VERSION
 ```
 
 2. At this stage, you can check the configuration files located 
-at **$HOME/environment/spot-placement-score-dashboard-cdk-v0.2.0/configuration**
+at the folder: **$HOME/environment/spot-placement-score-dashboard-cdk-v0.2.0/configuration**
 We do provide an example file with a few workloads, but we also recommend checking 
 [the best practices below](#dashboard-setup-best-practices). Use those best practices to define
 the dashboard that is meaningful for you.
@@ -401,3 +408,4 @@ cdk destroy
 Carlos Manzanedo Rueda, AWS <ruecarlo@amazon.com>  
 Daniel Zilberman, AWS <dzilberm@amazon.com>   
 Yael Grossman, AWS <yaelgr@amazon.com>  
+
