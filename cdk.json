@@ -1,18 +1,8 @@
 {
   "app": "python3 app.py",
   "watch": {
-    "include": [
-      "**"
-    ],
-    "exclude": [
-      "README.md",
-      "cdk*.json",
-      "requirements*.txt",
-      "source.bat",
-      "**/__init__.py",
-      "python/__pycache__",
-      "venv"
-    ]
+    "include": ["**"],
+    "exclude": ["README.md", "cdk*.json", "requirements*.txt", "**/__pycache__", "venv"]
   },
   "context": {
     "@aws-cdk/aws-apigateway:usagePlanKeyOrderInsensitiveId": true,
@@ -32,12 +22,6 @@
     "@aws-cdk/aws-sns-subscriptions:restrictSqsDescryption": true,
     "@aws-cdk/aws-apigateway:disableCloudWatchRole": true,
     "@aws-cdk/core:enablePartitionLiterals": true,
-    "@aws-cdk/core:target-partitions": [
-      "aws",
-      "aws-cn"
-    ],
-    "sps-config": "./sps_configuration/sps_config.yaml",
-    "stack-name": "spot-placement-score-dashboard",
-    "cdk-nag": false
+    "@aws-cdk/core:target-partitions": ["aws", "aws-cn"]
   }
 }
