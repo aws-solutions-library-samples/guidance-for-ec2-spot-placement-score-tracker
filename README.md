@@ -184,8 +184,8 @@ cd guidance-for-ec2-spot-placement-score-tracker
 
 2. At this stage, you can check the configuration files located 
 at the folder: **guidance-for-ec2-spot-placement-score-tracker/configuration**
-We do provide an example file with a few workloads, but we also recommend checking 
-[the best practices below](#dashboard-setup-best-practices). Use those best practices to define
+We provide an example file with a few workloads, but we also recommend checking 
+[the best configuration practices below](#dashboard-setup-best-practices). Follow those best practices to define
 the dashboard that is meaningful for you.
 
 3. Deploy dependencies
@@ -202,7 +202,7 @@ pip install -r requirements.txt
 4. Bootstrapping 
 
 Deploying AWS CDK apps into an AWS environment may require that you provision resources
-the AWS CDK needs to perform the deployment. These resources include an Amazon S3  bucket for storing files and IAM roles. 
+that AWS CDK needs to perform the deployment. These resources include an Amazon S3  bucket for storing files and IAM roles. 
 We will also use that S3 bucket to upload our dashboard configuration. 
 Execute the following command to bootstrap your environment:
 
@@ -222,7 +222,6 @@ with a period of 15 minutes.
 
 **Note** the AWS user you run this with, should be able to create deploy CloudFormation stacks, add extra IAM roles 
 and have access to execute Spot Placement Score queries.
-
 
 ## Configuration
 
