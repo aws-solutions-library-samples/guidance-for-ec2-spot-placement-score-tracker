@@ -175,17 +175,15 @@ and understand how to get actionable insights based on your configuration that w
 
 ## Deployment
 
-1. First download and extract the guidance repository to your local environment:
+1. First clone the latest version from the main branch:
  
 ```bash
-export VERSION=1.0.4
-wget https://github.com/aws-solutions-library-samples/guidance-for-ec2-spot-placement-score-tracker/archive/refs/tags/v$VERSION.tar.gz -O ec2-spot-placement-score-tracker-v$VERSION.tar.gz
-tar xzvf ec2-spot-placement-score-tracker-v$VERSION.tar.gz
-cd $HOME/environment/guidance-for-ec2-spot-placement-score-tracker-$VERSION
+git clone https://github.com/aws-solutions-library-samples/guidance-for-ec2-spot-placement-score-tracker.git
+cd guidance-for-ec2-spot-placement-score-tracker
 ```
 
 2. At this stage, you can check the configuration files located 
-at the folder: **$HOME/environment/spot-placement-score-dashboard-cdk-v0.2.0/configuration**
+at the folder: **guidance-for-ec2-spot-placement-score-tracker/configuration**
 We do provide an example file with a few workloads, but we also recommend checking 
 [the best practices below](#dashboard-setup-best-practices). Use those best practices to define
 the dashboard that is meaningful for you.
