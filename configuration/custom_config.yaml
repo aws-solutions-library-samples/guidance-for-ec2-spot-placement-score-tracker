@@ -1,0 +1,151 @@
+### Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+### SPDX-License-Identifier: MIT-0
+###
+### Permission is hereby granted, free of charge, to any person obtaining a copy of this
+### software and associated documentation files (the "Software"), to deal in the Software
+### without restriction, including without limitation the rights to use, copy, modify,
+### merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+### permit persons to whom the Software is furnished to do so.
+###
+### THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+### INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+### PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+### HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+### OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+### SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+#
+### This example showcases how to create actionable insights for Spot configurations
+### The final goal is find configurations for your workload that can increase
+### diversification and as a result increase the Spot Placement Score.
+### This dashboard will be created with filters and 3 widgets for SPS and Price in all regions.
+### The filters control Workload Type (Custom, Karpenter), Configuration Name, Target Capacity, and Unit Type
+### WorkloadType = Custom are configurations defined in this file. 
+### WorkloadType = karpenter are configurations defined in karpenter_nodepools_config.yaml
+### Unit Type only option is vcpu.
+### Regions and Target Capacity are defined as global variables used for all configurations.
+### The numbers have been kept deliberately low so this work in most accounts
+### as an example. You are encouraged to modify this to your needs.
+###
+### The first configuration `R 8xl and Above` is the
+### base configuration that represents the current configuration used by the application
+### The rest of the columns contain proposed changes in the configuration to increase the diversification
+### either by adding instance types from different sizes or by
+### adding different families. Once that you tried this configuration,
+### as an exercise: Increase diversification with new families.
+
+# Global configuration
+default_regions: &default_regions
+  - us-west-1 
+  - us-west-2 
+  - us-east-1 
+  - us-east-2 
+default_target_capacity: &default_target_capacity [125, 250]
+default_target_capacity_unit_type: &default_target_capacity_unit_type vcpu
+# Global widget defaults
+DefaultWidgetHeight: 12
+DefaultWidgetWidth: 6
+dashboards:
+- Dashboard: SpotTracker01
+  Sps:
+  - ConfigurationName: R 8xl and Above
+    InstanceTypes:
+    - r3.8xlarge
+    - r4.8xlarge
+    - r5.8xlarge
+    - r5.8xlarge
+    - r5d.8xlarge
+    - r5dn.8xlarge
+    - r5n.8xlarge
+    - r6i.8xlarge
+    - r5.12xlarge
+    - r5n.12xlarge
+    - r6i.12xlarge
+    - r4.16xlarge
+    - r5a.16xlarge
+    - r5d.16xlarge
+    - r5ad.16xlarge
+    SingleAvailabilityZone: False
+    RegionNames: *default_regions    
+    TargetCapacity: *default_target_capacity
+    TargetCapacityUnitType: *default_target_capacity_unit_type  
+  - ConfigurationName: R 4xl and Above
+    InstanceTypes:
+    - r3.8xlarge
+    - r4.8xlarge
+    - r5.8xlarge
+    - r5.8xlarge
+    - r5d.8xlarge
+    - r5dn.8xlarge
+    - r5n.8xlarge
+    - r6i.8xlarge
+    - r5.12xlarge
+    - r5n.12xlarge
+    - r6i.12xlarge
+    - r4.16xlarge
+    - r5a.16xlarge
+    - r5d.16xlarge
+    - r5ad.16xlarge
+    - r5.4xlarge
+    - r5a.4xlarge
+    - r5ad.4xlarge
+    - r5b.4xlarge
+    - r5d.4xlarge
+    - r5dn.4xlarge
+    - r5n.4xlarge
+    - r6a.4xlarge
+    - r6i.4xlarge
+    - r6id.4xlarge
+    SingleAvailabilityZone: False
+    RegionNames: *default_regions    
+    TargetCapacity: *default_target_capacity
+    TargetCapacityUnitType: *default_target_capacity_unit_type  
+  - ConfigurationName: ABIS-1to8GB-Above32vCPUs
+    InstanceRequirementsWithMetadata:
+      ArchitectureTypes:
+      - x86_64
+      InstanceRequirements:
+        VCpuCount:
+          Min: 32
+        MemoryMiB:
+          Min: 256
+        AcceleratorCount:
+          Max: 0
+        BareMetal: excluded
+        BurstablePerformance: excluded
+        CpuManufacturers:
+        - intel
+        - amd
+        InstanceGenerations:
+        - current
+        MemoryGiBPerVCpu:
+          Min: 8
+        SpotMaxPricePercentageOverLowestPrice: 50
+    SingleAvailabilityZone: False
+    RegionNames: *default_regions    
+    TargetCapacity: *default_target_capacity
+    TargetCapacityUnitType: *default_target_capacity_unit_type  
+  - ConfigurationName: ABIS-1to8GB-Above16vCPUs
+    InstanceRequirementsWithMetadata:
+      ArchitectureTypes:
+      - x86_64
+      InstanceRequirements:
+        VCpuCount:
+          Min: 16
+        MemoryMiB:
+          Min: 128
+        AcceleratorCount:
+          Max: 0
+        BareMetal: excluded
+        BurstablePerformance: excluded
+        CpuManufacturers:
+        - intel
+        - amd
+        InstanceGenerations:
+        - current
+        MemoryGiBPerVCpu:
+          Min: 8
+        SpotMaxPricePercentageOverLowestPrice: 50
+    SingleAvailabilityZone: False
+    RegionNames: *default_regions    
+    TargetCapacity: *default_target_capacity
+    TargetCapacityUnitType: *default_target_capacity_unit_type 

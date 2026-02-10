@@ -1,10 +1,11 @@
-# EC2 Spot Placement Score Tracker
+
+# Guidance for EC2 Spot Placement Score Tracker Dashboard on AWS
 
 
 ## Introduction 
-Amazon EC2 Spot Instances let you take advantage of unused EC2 capacity in the AWS cloud. 
+[Amazon EC2 Spot Instances](https://aws.amazon.com/ec2/spot/) let you take advantage of unused EC2 capacity in the AWS cloud. 
 Spot Instances are available at up to a 90% discount compared to On-Demand prices. 
-Spot Placement Score (SPS) is a feature that helps AWS Spot customers by providing 
+[Spot Placement Score (SPS)](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-placement-score.html) is a feature that helps AWS Spot customers by providing 
 recommendations about which are the best suited AWS Region or Availability Zone
 to run a diversified configuration that adjusts to the customer requirements.
 
@@ -13,8 +14,9 @@ A Spot placement score indicates how likely it is that a Spot request will succe
 in a Region or Availability Zone. Spot placement score provides a score from 1 to 9 
 of how successful your experience when using Spot instances would be on a set of regions.
 
-This project automates the capture of [Spot Placement Scores](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-placement-score.html)
-and stores SPS metrics in [CloudWatch](https://aws.amazon.com/cloudwatch/). Historic metrics
+This project automates the capture of [Spot Placement Scores](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-placement-score.html) 
+and [Spot prices](https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeSpotPriceHistory.html)
+and stores the metrics in [CloudWatch](https://aws.amazon.com/cloudwatch/). Historic metrics
 can be then be visualized using CloudWatch Dashboards. CloudWatch can also be used to trigger
 Alarms and automation of events such as moving your workload to a region where capacity is available.
 
@@ -32,38 +34,70 @@ such as [capacity-optimized](https://aws.amazon.com/blogs/aws/capacity-optimized
 ,and [price-capacity-optimized](https://aws.amazon.com/blogs/compute/introducing-price-capacity-optimized-allocation-strategy-for-ec2-spot-instances/)
 select the optimal pools to reduce the frequency of interruption and cost for your workload.
 
-Spot placement Score considers takes as an input a diversified fleet. With this **Spot Placement
+Spot placement Scores takes as an input a diversified fleet. With this **Spot Placement
 Score Tracker** dashboards, you will be able to monitor and evaluate how to
 apply spot best practices and as a result optimize your workload to make the most
 of Spare capacity at scale. Some of the best practices you should consider are:
 * Increasing Instance Diversification. Adding instances from other sizes, and families. 
 * Considering Flexibility in your workloads by selecting multiple Availability zones and
-if your workload allows, exploring the possibility of using multiple region
+if your workload allows, exploring the possibility of using multiple regions
 * Considering running at times of the day when spare capacity is more available 
 
 The following figure shows one of the Spot Placement Score dashboards
 
 ![img](/docs/spot-placement-score.png)
-
+_Figure 1. Sample Spot Placement Score dashboard_
 
 ## Architecture Diagram
 
-The project provides Infrastructure as Code (IaaC) automation using [AWS CDK](https://docs.aws.amazon.com/cdk/latest/guide/home.html)
-to deploy the infrastructure, IAM roles and policies required to run Lambda that gets executed
+The guidance provides Infrastructure as Code (IaaC) deployment automation using [AWS CDK](https://docs.aws.amazon.com/cdk/latest/guide/home.html)
+to provision the infrastructure, IAM roles and policies required to run Lambda serverless function that gets executed
 every 5 minutes to collect the Spot Placement Scores of as many diversified configurations
 as needed.
 
 ![img](/docs/building-a-spot-placement-score-tracker-dashboard-on-aws.png)
-_Figure 1. EC2 Spot Instance Score Tracker Reference Architecture_
+_Figure 2. EC2 Spot Instance Score Tracker Reference Architecture_
 
-The Reference Architecture above shows architectural components deployed using AWS CDK. If you are not familiar with AWS CDK you can use the 
-[AWS Cloud 9 IDE](#steps-to-consider-before-deployment-sps-dashboard-configuration)  to proceed with the whole setup and installation, otherwise you can install AWS CDK and run deployment from your computer.
+The Reference Architecture above shows architectural components deployed using AWS CDK. If you are not familiar with AWS CDK you can use the preconfigured
+[AWS IDE Toolkit or AWS CloudShell](https://aws.amazon.com/blogs/devops/how-to-migrate-from-aws-cloud9-to-aws-ide-toolkits-or-aws-cloudshell/) environments to proceed with the whole setup and installation, otherwise you can install AWS CDK and run deployment from your computer.
 
 The CDK project sets up a few policies and roles to run with least privilege read access to all resources except
 for Cloudwach for which it needs to store metrics.
 
 The diagram shows how the workflow steps are invoked:
 
+* First, during CDK deployment, `workloads_detection.py` processes `custom_config.yaml` and `karpenter_nodepools_config.yaml` to generate a unified `spot_config.yaml` configuration file.
+* The generated configuration is uploaded to S3 as part of the CDK deployment.
+* EventBridge CRON job triggers the `spotPlacementScoresLambda` every 15 minutes.
+* The Lambda function fetches the configuration YAML from S3 using environment variables.
+* For each configuration, the Lambda queries the EC2 Spot Placement Score API and retrieves current spot pricing.
+* The responses are published as CloudWatch Metrics with dimensions for WorkloadType, DiversificationName, Region, TargetCapacity, and UnitType.
+* The CDK project creates a unified CloudWatch dashboard with variables that filter metrics by these dimensions, enabling analysis across different workload types (Custom and Karpenter).
+
+
+## Cost 
+You are responsible for the cost of the AWS services used while running this Guidance. As of February 2026, the cost for running this Guidance with the default settings in the US East (N. Virginia) region is approximately $25.37 per month.
+
+* One Lambda function envoked at 15 minutes interval, using the ARM architecture
+* One scheduled EventBridge rule envoked at 15 minutes interval
+* One CloudWatch dashboard with 4 widgets 
+* Two Custom metrics for each combination of a configuration, a region, and a target capacity. The example configuration files consist of 4 regions, 6 configurations, 2 target capacities. Custom metrics are billed per number of metrics stored and number of PutMetricData API calls according to the [CloudWatch pricing in the region being used](https://aws.amazon.com/cloudwatch/pricing/).
+* Amazon S3 bucket stores the lambda code and configuration files
+
+_We recommend creating a [Budget](https://docs.aws.amazon.com/cost-management/latest/userguide/budgets-managing-costs.html) through [AWS Cost Explorer](https://aws.amazon.com/aws-cost-management/aws-cost-explorer/) to help manage costs. Prices are subject to change. For full details, refer to the pricing webpage for each AWS service used in this Guidance._
+
+### Sample Cost Table 
+The following table provides a sample cost breakdown for deploying this Guidance with the default parameters in the US East (N. Virginia) Region `us-east-1` for one month.
+
+| AWS service  | Dimensions | Cost [USD] |
+| ------------------------- | ------------------------- | ------------ |
+| Amazon Lambda  | Main processing logic, collect the metrics  | $ 1.00|
+| Amazon EventBridge  | Scheduled invocations at 15 minutes interval  | $ 0.00|
+| Amazon CloudWatch Metrics Dashboard | A single dashboard  | $ 0.00 |
+| Amazon CloudWatch Metrics Custom Metrics | 2 metrics for 48 unique combinations of dimensions  | $ 21.60 |
+| Amazon CloudWatch Metrics PutMetricData | ˜276k PutMetricData API Calls  | $ 2.76 |
+| Amazon S3 | Stores configuration YAML files | $ 0.01 |
+| **Total** | | **$ 25.37/mo**|
 * First, Event Bridge CRON job functionality starts the execution of the `spotPlacementScoresLambda` every 5 minutes.
 * The lambda function, uses the environment variable config to fetch the YAML document that contains the dashboard.
 * The lambda decomposes all the requests and starts requesting one by one the queries to SPS
@@ -73,12 +107,12 @@ preset the CloudWatch representation of the dashboards.
 
 ## Important notes Spot Placement Score Limits imposed by AWS
 
-Spot placement Score API's imposes a set of limits that you should be aware of:
+[Spot Placement Score API](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-placement-score.html) imposes a set of limits that you should be aware of:
  - Limit on number of Instances, vCPU, Memory for each request. This limit will be 
 equivalent to the number of instances that you are already using in your account
 in a regular way, so that you can evaluate your current workload on different regions or AZ. 
  - Limit on number of configurations. Spot Placement Score limits you to a few (10) diversified
-configurations. If you configure too many configurations you may find that the lambda
+configurations. If you configure too many configurations you may find that the Lambda invocation 
 will fail and will be limited to just query a few of the configurations. This will also be
 checked as part of the CDK deployment process.
 
@@ -90,63 +124,76 @@ Spot placement configurations. You can retry configurations that you used within
 last 24 hours, or wait for 24 hours before specifying a new configuration.
 ```
 
-## Steps to consider before Deployment: SPS Dashboard Configuration  
+## Deployment Pre-requisistes: SPS Dashboard Configuration  
 
-The file [sps_configuration.yaml](sps_configuration/sps_config.yaml) provides an 
-example configuration file that you can modify and adapt to your needs. This file will be 
-used and deployed by the stack to the cloud and will be kept in S3 as the source configuration. 
-The file uses a YAML format that follows a compatible schema as the one used by the Spot Placement 
+This project supports two configuration schemas:
+
+1. Custom workloads using the [Spot Placement Score API](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-placement-score.html) structure located in [custom_config.yaml](configuration/custom_config.yaml)
+2. [Karpenter](https://karpenter.sh/) workloads using the Karpenter NodePool schema located in [karpenter_nodepools_config.yaml](configuration/karpenter_nodepools_config.yaml)
+
+During deployment, the `workloads_detection.py` script processes both configuration files and generates a unified `spot_config.yaml` 
+that is uploaded to S3 and used by the Lambda function.
+
+>NOTE: For Karpenter Integration - No EKS cluster access required. This project analyzes Karpenter NodePool configurations to generate Spot Placement Score
+metrics. It does not require access to your EKS cluster or a running Karpenter installation. The workloads_detection.py script simply 
+parses the NodePool YAML schema to extract instance requirements and generate corresponding SPS configurations.
+
+You can use Karpenter NodePool configurations from self-managed Karpenter installations, EKS Auto Mode managed Karpenter, or any Karpenter 
+deployment method. To use an externally hosted configuration file, see the section on Creating a stack with a different configuration file.
+
+### Supported AWS Regions
+
+The services discussed and used in this guidance are available in all AWS regions.
+
+### Configuration Files
+
+**custom_config.yaml**: Define custom workloads using either explicit instance type lists or Attribute-Based Instance Selection (ABIS). This file also contains global settings:
+- `default_regions`: AWS regions to monitor (used by all configurations)
+- `default_target_capacity`: Target capacity values for SPS queries
+- `default_target_capacity_unit_type`: Unit type (vcpu)
+This file uses a YAML format that follows a compatible schema as the one used by the Spot Placement 
 Score call. You can find more information on the SPS API structure for 
-python [here](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ec2.html#EC2.Client.get_spot_placement_scores)
+Python [here](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ec2.html#EC2.Client.get_spot_placement_scores)
 
-Before proceeding with the deployment of the dashboards CDK you will need to adapt the 
-configuration file that defines the different Spot diversified configurations. 
+**karpenter_nodepools_config.yaml**: Define Karpenter NodePool configurations. The script converts NodePool requirements into SPS schema, using the global regions and target capacity from `custom_config.yaml`.
+This file follows the [Karpenter NodePool Specification](https://karpenter.sh/docs/concepts/nodepools/)
 
-To learn how to better adjust your configurations [keep reading the best practices section](#configuration-best-practices) 
+Before proceeding with the deployment of the Spot Placement dashboards with AWS CDK, you will need to adapt the 
+configuration file that defines the different Spot configurations. 
+
+To learn how to better adjust your configurations [please read the best practices section](#dashboard-configuration-best-practices) 
 and understand how to get actionable insights based on your configuration that will help you optimize your workload.
 
-
-## Requirements
+### Requirements
 * [CDK](https://docs.aws.amazon.com/cdk/v2/guide/getting_started.html)
 * Python =>3.8
 * [virtualenv](https://pypi.org/project/virtualenv/)
-* IAM Permissions run CDK stacks and request for Spot Placement Score
+* [boto3](https://boto3.amazonaws.com/v1/documentation/api/latest/index.html) - AWS SDK for Python
+* [PyYAML](https://pyyaml.org/) - YAML parser
+* IAM Permissions run CDK stacks and request for Spot Placement Score and EC2 APIs
 * Docker
 
-## Installation
+## Deployment
 
-### Deploying CDK project using Cloud9 IDE 
-The easier way to setup and deploy your environment is using Cloud9 following 
-this instructions. 
-
-* Create a Cloud9 environment : 
-* On the console run the following commands:
-
- 1.- Create a Cloud9 environment in your account. **Note**: If you use a pre-existing cloud9 environment you may need to
-upgrade your python and npm.
-
-
- 2.- Execute the following commands on Cloud 9 (you can just copy and paste)
-```
+1. First download and extract the guidance repository to your local environment:
+ 
+```bash
 export VERSION=1.0.4
 wget https://github.com/aws-solutions-library-samples/guidance-for-ec2-spot-placement-score-tracker/archive/refs/tags/v$VERSION.tar.gz -O ec2-spot-placement-score-tracker-v$VERSION.tar.gz
 tar xzvf ec2-spot-placement-score-tracker-v$VERSION.tar.gz
 cd $HOME/environment/guidance-for-ec2-spot-placement-score-tracker-$VERSION
 ```
 
-#### Configuring the Cloud9 Setup before deployment
-
-At this stage, you can check on the Cloud 9 editor and edit the configuration file
-at **$HOME/environment/spot-placement-score-dashboard-cdk-v0.2.0/sps_configuration/sps_config.yaml**
-We do provide an example file with a few passwords, but we also recommend checking 
+2. At this stage, you can check the configuration files located 
+at the folder: **$HOME/environment/spot-placement-score-dashboard-cdk-v0.2.0/configuration**
+We do provide an example file with a few workloads, but we also recommend checking 
 [the best practices below](#dashboard-setup-best-practices). Use those best practices to define
-the dashboards that are meaningful for your configuration.
+the dashboard that is meaningful for you.
 
+3. Deploy dependencies
 
-#### Deploy dependencies
-
-Once your configuration file is ready, we should install CDK and the rest of dependencies.
-```
+Once your configuration file is ready, proceed to install CDK and the rest of dependencies.
+```bash
 npm install -g --force aws-cdk
 pip install virtualenv
 virtualenv .env
@@ -154,10 +201,11 @@ source .env/bin/activate
 pip install -r requirements.txt 
 ```
 
-#### Bootstrap 
+4. Bootstrapping 
+
 Deploying AWS CDK apps into an AWS environment may require that you provision resources
-the AWS CDK needs to perform the deployment. These resources include an Amazon S3 
-bucket for storing files and IAM roles. We will also use that S3 bucket to upload our dashboard configuration. 
+the AWS CDK needs to perform the deployment. These resources include an Amazon S3  bucket for storing files and IAM roles. 
+We will also use that S3 bucket to upload our dashboard configuration. 
 Execute the following command to bootstrap your environment:
 
 ```bash
@@ -165,105 +213,78 @@ cdk bootstrap
 ```
 You can read more about [the bootstrapping process here](https://docs.aws.amazon.com/cdk/v2/guide/bootstrapping.html)
 
-#### Deploying the application & Dashboards
+5. Deploying  Application and Dashboards
 
 ```bash
 cdk deploy
 ```
 
-Once deployed, go to your AWS console and visit the CloudWatch Dashboard section. The Dashboards are aggregated 
+Once deployed, navigate to your AWS console and visit the CloudWatch Dashboard section. The Dashboards are aggregated 
 with a period of 15 minutes.
 
-
-#### Cleanup 
-
-Once you are done, you can destroy the cdk deployment and delete the cloud9 environment.
-You can also delete the configuration by deleting the stack in CloudFormation.
-```
-cdk destroy
-```
-
-**Note** the user you run this with, should be able to create Cloud9
-environments create deploy CloudFormation stacks, add extra IAM roles 
+**Note** the AWS user you run this with, should be able to create deploy CloudFormation stacks, add extra IAM roles 
 and have access to execute Spot Placement Score queries.
 
 
 ## Configuration
 
-The configuration file contains a YAML defined vector of dashboards. For example
-The following snippet shows how to configure two dashboards for two workloads.
-Each dashboard can define `DefaultWidgetHeight` and `DefaultWidgetWidth` to set 
-the size of each individual chart. The maximum width of CloudWatch Grid is 24, so
-in this example below we will be creating rows of 2 charts of height 12.
-The `Sps` section defines a list of SPS configurations to evaluate.
-
-
-```yaml
-- Dashboard: MySpsDashboard-for-Workload-A
-  DefaultWidgetHeight: 12    # Default : 6
-  DefaultWidgetWidth: 12     # Default : 6, Grid Maximum Width:24
-  Sps:
-    ...
-- Dashboard: MySpsDashboard-for-Workload-B
-  DefaultWidgetHeight: 12    # Default : 6
-  DefaultWidgetWidth: 12     # Default : 6, Grid Maximum Width:24
-  Sps:
-    ...
-```
-
-Now that we know how to create more than one dashboard, let's check at the SPS section.
+The `custom_config.yaml` file contains a YAML defined vector of workloads. 
 The `Sps` section defines an array of SPS configurations. Each individual `Sps` section
 has a named SPS query. The request format is the same as the serialised version of the 
 call to SPS API's. You can use as a reference the boto documentation [here](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ec2.html#EC2.Client.get_spot_placement_scores)
 or the [aws-cli for spot placement score](https://docs.aws.amazon.com/cli/latest/reference/ec2/get-spot-placement-scores.html)
 Check the section **JSON Syntax** 
 
-Below  is an example of a Dashboard with a single SPS chart. The configuration shows a 
-dashboard for workload A with 2 charts per row. The first chart has a name `Compute Xlarge`
-and uses the schemas defined in the link above to diversify over instances *c5.xlarge* and 
-similar sized instances from the compute instance family. Aside from the key `ConfigurationName`
-the rest of the parameters follows the schemas provided in the links above to target european
-regions up to 2000 vCPUs. Note that below the configuration `Compute Xlarge`, there is a second 
-one for `Compute 2Xlarge`. 
+Below is an example configuration that defines multiple workload configurations. All configurations will appear in a single unified 
+dashboard with dropdown filters. The configuration uses global settings and YAML anchors to ensure consistency across all workloads.
+The example shows two configurations: `Compute Xlarge` and `Compute 2Xlarge`. Both use the global `default_regions` and `default_target_capacity` 
+settings defined at the top of the file. Aside from the key `ConfigurationName` the rest of the parameters follows the schemas provided in the 
+links above to target european regions up to 2000 vCPUs. 
 
 ```yaml
-- Dashboard: MySpsDashboard-for-Workload-A
-  DefaultWidgetHeight: 12    # Default : 6
-  DefaultWidgetWidth: 12     # Default : 6, Grid Maximum Width:24
+# Global configuration - applies to ALL configurations
+default_regions: &default_regions
+  - eu-west-1
+  - eu-west-2
+  - eu-central-1
+default_target_capacity: &default_target_capacity [1000, 2000]
+default_target_capacity_unit_type: &default_target_capacity_unit_type vcpu
+
+dashboards:
+- Dashboard: SpotTracker01 
   Sps:
-  # Second configuration this one for Compute 2xlarge
   - ConfigurationName: Compute Xlarge
     InstanceTypes:
     - c5.xlarge
     - c6i.xlarge
     - c5a.xlarge
     - c5d.xlarge
-    ...
-    RegionNames:
-    - eu-west-1
-    - eu-west-2
-    ...
     SingleAvailabilityZone: False
-    TargetCapacity: 2000
-    TargetCapacityUnitType: vcpu
+    RegionNames: *default_regions    
+    TargetCapacity: *default_target_capacity
+    TargetCapacityUnitType: *default_target_capacity_unit_type
     
-  # Second configuration this one for Compute 2xlarge
   - ConfigurationName: Compute 2Xlarge
-    ...
+    InstanceTypes:
+    - c5.2xlarge
+    - c6i.2xlarge
+    - c5a.2xlarge
+    - c5d.2xlarge
+    SingleAvailabilityZone: False
+    RegionNames: *default_regions    
+    TargetCapacity: *default_target_capacity
+    TargetCapacityUnitType: *default_target_capacity_unit_type
+
 ```
 
-Instead  of using `InstanceTypes` we do recommend using `InstanceRequirementsWithMetadata`. This
+Instead  of using `InstanceTypes` we recommend using `InstanceRequirementsWithMetadata`. This
 maps with requesting Diversification using Instance attributes rather than the AWS instance names.
 You can read more about [Attribute Based Instance Selection](https://aws.amazon.com/blogs/aws/new-attribute-based-instance-type-selection-for-ec2-auto-scaling-and-ec2-fleet/)
 We  **strongly recommend** to define your configurations using Attribute Based Instance Selection.
 By doing that you will have a simple configuration to maximise the diversification and instance types
-that your workload can use and that will consider new instances as they are released by AWS. 
+that your workload can use and that will consider new instances as they are released by AWS:
 
 ```yaml
-- Dashboard: MySpsDashboard-for-Workload-A
-  DefaultWidgetHeight: 12    # Default : 6
-  DefaultWidgetWidth: 12     # Default : 6, Grid Maximum Width:24
-  Sps:
   # Second configuration this one for Compute 2xlarge
   - ConfigurationName: Compute Xlarge
     InstanceRequirementsWithMetadata:
@@ -292,45 +313,39 @@ that your workload can use and that will consider new instances as they are rele
     ...
 ```
 
-### Advanced configurations
+### Advanced deployment configurations
 
-The configuration file, by default supports the definition of multiple dashboards,
-but still in some scenarios you may want to have multiple configuration files,
-or deploy multiple times a CloudFormation stack with a different name and a different
+In some scenarios you may want to deploy a CloudFormation stack multiple times with a different name and a different
 configuration. 
 
-#### Creating a stack with a different configuration file
+1. Creating a stack with a different configuration file
 
-The default configuration file is stored in the `sps_configuration/sps_config.yaml`.
-You can point to any other file by using the context key `sps-config` in when launching
+The default configuration files are stored in the `configuration/custom_config.yaml` and `configuration/karpenter_nodepools_config.yaml`
+You can point to any other file by using the context key `custom-config` or `karpenter-config` in when launching
 cdk commands:
 ```bash
-cdk deploy --context "sps-config=./my_sps_dashboard_configuration.yaml"
+cdk deploy --context custom-config=./my-custom-config.yaml
 ```
-
-#### Creating and deploying multiple stacks on the same AWS account
+2. Creating and deploying multiple stacks on the same AWS account
 
 In some situations you may want to deploy a two different configuration files simultaneously on
 the same account. You can do it by using the following command 
 ```bash
-cdk deploy --context "sps-config=./my_sps_dashboard_configuration.yaml" --context "stack-name=my-sps-demo" 
+cdk deploy --context "custom-config=./my_sps_dashboard_configuration.yaml" --context "stack-name=my-sps-demo" 
 ```
 
 This will create a new Stack named `my-sps-demo`. To destroy/remove the stack you can use CloudFormation
 directly.
 
-## Dashboard Setup Best Practices 
+### Dashboard Configuration Best Practices 
 
 Checking out what is the Spot Placement Score is definitely useful. You can use this project and 
 [Spot Interruption Dashboard](https://github.com/aws-samples/ec2-spot-interruption-dashboard)
-to get understand and get the right observability for your workloads, but that's just the begining.
+to get an understanding and get the right observability for your workloads, but that's just the begining.
 
 The goal when we set up SPS dashboard is to find actionable configurations that will help to improve 
 the way that our workload provisions Spot capacity at the scale you need. The next steps will guide you
 on a set of steps to define your dashboard configuration.
-
-* Consider using a dashboard per workload. We will focus our attention at the workload level and will
-evaluate which other configurations can improve our current configurations.
 
 * Understand your workload requirements and find: (a) how many vCPUs you will need, (b) what is the minimum
 configuration that qualifies for your workload (c) can the workload be spread across AZ's ? (d) Which 
@@ -351,19 +366,46 @@ zones if you have not done it yet (and is appropriate for your workload)
 seasonality, which you can use to run your time flexible workload at a different time, find the next 
 region to expand on, or find where you'd run your Disaster Recovery regional workload copy.
 
-* Create the extra configurations in the same dashboard. Make sure the properties for `RegionNames`, 
-`SingleAvailabilityZone` and `TargetCapacity` stay the same so you can compare the configurations like for like.
-
-* Adapt the dashboard `DefaultWidgetWidth` to define how many charts/configurations you want per row.
-For example if you have 4 configurations, you can set the `DefaultWidgetWidth` to 6 so that each row contains 
-the 4 configurations side by side, making them easier to compare.
-
 * With the first row already configured, we will follow the same pattern in the second row. We can make a copy of 
-all the configurations, and then change just one dimension. The idea is that we can use the row / column patter to
-identify configurations. For example we could chose the `TargetCapacity` dimension, copying all the previous configuration
-and then checking what would happen if our workload doubles in size, or if we could perhaps reduce in two and run
-two copies in different regions.
+all the configurations, and then change just one dimension. The idea is that we can use the row / column pattern to
+identify configurations. For example we could chose the `CpuManufacturers` dimension, copying all the previous configuration
+and then checking what would happen if our workload supports other CPUs.
 
-##Authors: 
-Carlos Manzanedo Rueda <ruecarlo@amazon.com>
-Daniel Zilberman <dzilberm@amazon.com>
+### Using Spot placement scores with Accelerated Compute platforms 
+
+Spot instances are an excellent compute option for short-term, spiky, and flexible AI/ML workloads. Spot Placement Score 
+helps you identify regional availability for GPU, AWS Trainium, and AWS Inferentia accelerators at any given time.
+If your AI/ML workload requires specific accelerators but are region flexibility, use Spot Placement Score to assess 
+capacity availability across regions and deploy to the optimal location based on real-time capacity fluctuations.
+
+* For most instance families: Include at least 3 different instance types in your configuration to maximize diversification.
+* For P-family instances (P4, P5, P6): Single instance type configurations are supported.
+
+Below is a sample configuration file for multiple instances in the `P` family:
+
+```yaml
+  # Second configuration this one for Compute 2xlarge
+  - ConfigurationName: H100/200
+    InstanceTypes:
+    - p5en.48xlarge
+    - p5e.48xlarge
+    - p5.48xlarge
+    SingleAvailabilityZone: False
+    
+  # Second configuration this one for Compute 2xlarge
+  - ConfigurationName: B200
+    ...
+```
+## Cleanup
+Once you are done using this guidance, you can destroy the CDK deployment and delete the deployment environment.
+You can use this command or delete the configuration by deleting the stack in CloudFormation.
+
+```bash
+cdk destroy
+```
+
+## Authors:  
+Carlos Manzanedo Rueda, AWS <ruecarlo@amazon.com>  
+Daniel Zilberman, AWS <dzilberm@amazon.com>   
+Yael Grossman, AWS <yaelgr@amazon.com>  
+

@@ -3,4 +3,3 @@ aws-cdk.aws-lambda-python-alpha==2.130.0a0
 constructs>=10.0.0,<11.0.0
 boto3>=1.22.11
 pyyaml>=5.0
-cdk-nag==2.19.1

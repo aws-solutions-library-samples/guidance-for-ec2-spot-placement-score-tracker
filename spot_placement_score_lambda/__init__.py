@@ -1,1 +1,1 @@
-from .spot_placement_score_lambda import *
+from .spot_placement_score_lambda_v2 import *
