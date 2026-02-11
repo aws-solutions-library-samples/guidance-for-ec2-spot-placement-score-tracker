@@ -30,6 +30,8 @@ from aws_cdk import (
     aws_events, aws_events_targets, aws_cloudwatch, Names, CfnOutput
 )
 
+from aws_cdk.aws_lambda_python_alpha import PythonFunction
+
 CONTEXT_CUSTOM_CONFIG_KEY = 'custom-config'
 CONTEXT_KARPENTER_CONFIG_KEY = 'karpenter-config'
 CONTEXT_STACK_NAME_KEY = 'stack-name'
@@ -126,10 +128,11 @@ class UnifiedSpotTrackerStack(Stack):
             actions=['s3:GetObject']))
 
         print("Creating Lambda Function...")
-        self.sps_lambda = aws_lambda.Function(
+        self.sps_lambda = PythonFunction(
             self, "SPS-function",
-            code=aws_lambda.Code.from_asset('./spot_placement_score_lambda/'),
-            handler='spot_placement_score_lambda_v2.handler',
+            entry='./spot_placement_score_lambda/',
+            index='spot_placement_score_lambda_v2.py',
+            handler='handler',
             runtime=aws_lambda.Runtime.PYTHON_3_9,
             architecture=aws_lambda.Architecture.ARM_64, memory_size=512,
             timeout=Duration.seconds(600), role=sps_lambda_role,
